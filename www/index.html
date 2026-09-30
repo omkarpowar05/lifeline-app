@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lifeline – Community First-Aid Prototype</title>
+<style>
+:root{
+  --bg:#E9ECEF; --screen:#F7F8F9; --card:#FFFFFF; --ink:#18212B; --mute:#5D6B7A; --line:#DDE2E7;
+  --red:#D7261E; --red-d:#A81812; --red-t:#FCE8E6; --green:#17805A; --green-t:#E0F3EB; --amber:#B77900; --amber-t:#FFF1CF;
+  --blue:#1F5FA8; --blue-t:#E3EEF9; --map:#E7EDE9; --road:#FFFFFF;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1216; --screen:#141A20; --card:#1C242C; --ink:#EDF1F4; --mute:#93A1AF; --line:#2B3640;
+    --red:#F0483F; --red-d:#C7322A; --red-t:#3A1B1A; --green:#3CB98A; --green-t:#173327; --amber:#E8B23A; --amber-t:#3A2E12;
+    --blue:#6AA5E6; --blue-t:#182B40; --map:#1B2721; --road:#2C3742;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1216; --screen:#141A20; --card:#1C242C; --ink:#EDF1F4; --mute:#93A1AF; --line:#2B3640;
+  --red:#F0483F; --red-d:#C7322A; --red-t:#3A1B1A; --green:#3CB98A; --green-t:#173327; --amber:#E8B23A; --amber-t:#3A2E12;
+  --blue:#6AA5E6; --blue-t:#182B40; --map:#1B2721; --road:#2C3742;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4;display:flex;justify-content:center;align-items:center;gap:40px;padding:16px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--blue);outline-offset:2px}
+.side{max-width:290px;display:none}
+@media(min-width:900px){.side{display:block}}
+.side h1{font-size:28px;line-height:1.1;margin-bottom:10px}
+.side p{color:var(--mute);margin-bottom:16px}
+.side h2{font-size:15px;margin:18px 0 8px}
+.side .jump{display:flex;flex-wrap:wrap;gap:6px}
+.side .jump button{padding:7px 11px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);font-size:14px}
+.side .jump button:hover{border-color:var(--ink)}
+.phone{width:390px;max-width:100%;height:min(820px,calc(100vh - 32px));background:var(--screen);border-radius:36px;border:8px solid var(--ink);overflow:hidden;position:relative;display:flex;flex-direction:column}
+@media(max-width:520px){body{padding:0}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0}}
+.status{display:flex;justify-content:space-between;padding:10px 22px 4px;font-size:13px;color:var(--mute)}
+.body{flex:1;overflow-y:auto;padding:8px 18px 20px;position:relative}
+.nav{display:flex;border-top:1px solid var(--line);background:var(--card)}
+.nav button{flex:1;padding:10px 2px 12px;font-size:12.5px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button svg{width:22px;height:22px}
+.nav button.on{color:var(--red);font-weight:700}
+h2.t{font-size:24px;line-height:1.15;margin:8px 0 4px}
+.sub{color:var(--mute);font-size:14.5px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.between{justify-content:space-between}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:13px;background:var(--blue-t);color:var(--blue);font-weight:700}
+.chip.g{background:var(--green-t);color:var(--green)}
+.chip.a{background:var(--amber-t);color:var(--amber)}
+.chip.r{background:var(--red-t);color:var(--red)}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:14px;border-radius:14px;font-weight:700;background:var(--ink);color:var(--screen);min-height:50px}
+.btn.red{background:var(--red);color:#fff}
+.btn.green{background:var(--green);color:#fff}
+.btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.btn.sm{width:auto;padding:9px 14px;min-height:40px;font-size:14px;border-radius:11px}
+.btns{display:flex;gap:8px}
+.btns .btn{flex:1}
+label.f{display:block;font-size:13.5px;font-weight:700;margin:12px 0 5px}
+input[type=text],input[type=password],select{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.seg{display:flex;background:var(--line);border-radius:13px;padding:3px;margin:10px 0}
+.seg button{flex:1;padding:10px;border-radius:10px;font-weight:700;color:var(--mute)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pills button{padding:9px 13px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);font-size:14px}
+.pills button.on{background:var(--ink);color:var(--screen);border-color:var(--ink)}
+.file{display:flex;align-items:center;gap:10px;padding:13px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;color:var(--mute)}
+.file.done{border-style:solid;border-color:var(--green);color:var(--green);background:var(--green-t)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;margin:10px 0 6px}
+.logo i{width:34px;height:34px;border-radius:10px;background:var(--red);display:grid;place-items:center}
+.logo svg{width:20px;height:20px;fill:#fff}
+/* SOS */
+.sos-wrap{display:grid;place-items:center;margin:10px 0 6px}
+.sos{width:190px;height:190px;border-radius:50%;background:var(--red);color:#fff;font-size:44px;font-weight:700;letter-spacing:1px;display:grid;place-items:center;box-shadow:0 0 0 12px var(--red-t),0 10px 24px rgba(215,38,30,.35);transition:transform .1s}
+.sos:active{transform:scale(.96)}
+.sos small{display:block;font-size:13px;font-weight:400;margin-top:-6px}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.types button{padding:16px 8px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px}
+.types button:hover,.types button:focus-visible{border-color:var(--red)}
+.types span{font-size:28px}
+/* map */
+.map{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--map);margin-bottom:12px}
+.map svg{display:block;width:100%;height:auto}
+.road{stroke:var(--road);stroke-width:9;fill:none;stroke-linecap:round}
+.route{stroke:var(--blue);stroke-width:3.5;fill:none;stroke-dasharray:6 5}
+.pulse{animation:pulse 1.6s ease-out infinite;transform-origin:center;transform-box:fill-box}
+@keyframes pulse{from{opacity:.6;transform:scale(.5)}to{opacity:0;transform:scale(2.2)}}
+@media(prefers-reduced-motion:reduce){.pulse{animation:none}}
+/* timeline */
+.tl{list-style:none;padding:0}
+.tl li{display:flex;gap:12px;padding:8px 0;position:relative}
+.tl li:not(:last-child):before{content:"";position:absolute;left:11px;top:32px;bottom:-8px;width:2px;background:var(--line)}
+.tl .dot{width:24px;height:24px;border-radius:50%;background:var(--line);flex:none;display:grid;place-items:center;font-size:13px;color:#fff}
+.tl .done .dot{background:var(--green)}
+.tl .now .dot{background:var(--red)}
+.tl .wait{color:var(--mute)}
+/* video */
+.vid{display:flex;gap:12px;align-items:center;width:100%;text-align:left}
+.thumb{width:84px;height:62px;border-radius:10px;background:var(--ink);color:var(--screen);display:grid;place-items:center;flex:none;font-size:22px}
+.player{background:var(--ink);color:#fff;border-radius:16px;padding:16px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;margin-bottom:12px}
+.player .cap{font-size:22px;font-weight:700;line-height:1.2;text-align:center;margin:20px 0}
+.bar{height:6px;border-radius:9px;background:rgba(255,255,255,.25);overflow:hidden}
+.bar b{display:block;height:100%;background:var(--red);width:0}
+.metro{width:170px;height:170px;border-radius:50%;margin:14px auto;display:grid;place-items:center;background:var(--red-t);border:6px solid var(--red);text-align:center}
+.metro.beat{background:var(--red);color:#fff}
+.metro div{font-size:52px;font-weight:700;line-height:1}
+.metro small{display:block;font-size:14px}
+.back{font-weight:700;color:var(--blue);padding:6px 0;margin-bottom:2px}
+/* overlays */
+.overlay{position:absolute;inset:0;background:rgba(10,14,18,.55);display:flex;align-items:flex-end;z-index:5}
+.sheet{background:var(--screen);width:100%;border-radius:24px 24px 0 0;padding:20px 18px 26px;max-height:90%;overflow:auto}
+.call{position:absolute;inset:0;background:#0F1720;color:#fff;z-index:6;display:flex;flex-direction:column;align-items:center;padding:60px 24px 40px;text-align:center}
+.avatar{width:96px;height:96px;border-radius:50%;background:#2A3A4A;display:grid;place-items:center;font-size:36px;font-weight:700;margin-bottom:14px}
+.call .tile{width:100%;flex:1;margin:18px 0;border-radius:18px;background:#1B2836;display:grid;place-items:center;color:#93A1AF}
+.call .ctl{display:flex;gap:14px}
+.call .ctl button{width:58px;height:58px;border-radius:50%;background:#2A3A4A;color:#fff;font-size:22px}
+.call .ctl button.end{background:var(--red)}
+.alertbar{background:var(--red);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.alertbar .btn{background:#fff;color:var(--red-d)}
+.alertbar .btn.dk{background:rgba(0,0,0,.25);color:#fff}
+.toast{position:absolute;left:18px;right:18px;bottom:82px;background:var(--ink);color:var(--screen);padding:12px 14px;border-radius:12px;z-index:9;font-size:14.5px}
+.disc{font-size:12.5px;color:var(--mute);text-align:center;margin-top:8px}
+.big{font-size:32px;font-weight:700;line-height:1}
+.sw{position:relative;width:52px;height:30px;border-radius:99px;background:var(--line);flex:none}
+.sw.on{background:var(--green)}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on:after{left:25px}
+</style>
+</head>
+<body>
+
+<aside class="side">
+  <h1>Lifeline prototype</h1>
+  <p>Clickable demo of the community first-aid and emergency dispatcher. Everything is simulated, so nothing is really sent or dialled.</p>
+  <h2>Jump to a screen</h2>
+  <div class="jump" id="jump"></div>
+  <h2>Try this flow</h2>
+  <p style="font-size:14px">Sign up as a user, press SOS, pick an emergency type, and watch the volunteer approach. Then open the CPR guide. Switch to the volunteer role to see the incoming alert.</p>
+</aside>
+
+<div class="phone" id="phone">
+  <div class="status"><span id="clock">9:41</span><span>4G ▪ 82%</span></div>
+  <div class="body" id="view"></div>
+  <nav class="nav" id="nav"></nav>
+</div>
+
+<script>
+var $=function(s){return document.querySelector(s)};
+var S={role:null,mode:'signup',authRole:'user',screen:'auth',tab:'home',sos:null,phase:null,dist:800,amb:9,skill:['CPR'],cert:false,online:true,alertOn:false,accepted:false,vid:null,play:0,cprOn:false,cprCount:0,call:null,callT:0,toast:'',sheet:null};
+var timers={};
+var TYPES=[['Cardiac arrest','❤️'],['Accident','🚗'],['Choking','😮'],['Heavy bleeding','🩸'],['Burn','🔥'],['Unconscious','😵']];
+var VIDEOS=[
+ ['CPR for adults','Check response, call 112, push hard and fast in the centre of the chest.',['Check if the person responds','Call 112 or ask someone to','Place hands on the centre of the chest','Push hard and fast, 100 to 120 a minute','Let the chest rise fully between pushes','Keep going until help arrives']],
+ ['Choking adult','Five back blows, then five abdominal thrusts.',['Ask: are you choking?','Lean them forward','Give 5 firm back blows','Give 5 abdominal thrusts','Repeat until it clears','Call 112 if they collapse']],
+ ['Stop severe bleeding','Press firmly and do not remove the cloth.',['Wear gloves if you can','Press a clean cloth on the wound','Press hard and do not lift','Add more cloth on top if soaked','Raise the limb if no fracture','Call 112 for heavy bleeding']],
+ ['Burns','Cool under running water for 20 minutes.',['Move away from the heat source','Run cool water for 20 minutes','Remove rings and watches','Do not use ice, butter or paste','Cover with clean cling film','Get medical help for large burns']],
+ ['Fainting and seizure','Protect the head, do not restrain, time it.',['Move hard objects away','Cushion the head','Do not hold them down','Do not put anything in the mouth','Time the seizure','Roll on their side afterwards']]
+];
+var VOLS=[['Asha Patil','CPR, first aid','+91 98220 10001','350 m'],['Rohan Jadhav','Trauma, bleeding','+91 98220 10002','520 m'],['Dr. Sneha Kulkarni (intern)','CPR, burns','+91 98220 10003','610 m'],['Imran Shaikh','Choking, CPR','+91 98220 10004','780 m'],['Pooja Desai','Nursing student','+91 98220 10005','940 m']];
+var DOCS=[['Dr. Meera Joshi','MBBS, General Medicine','MMC-48213','Online now'],['Dr. Arjun Rao','MBBS, Emergency Medicine','MMC-51770','Online now'],['Dr. Farah Khan','MBBS, Paediatrics','MMC-39025','Busy']];
+var HIST=[['Today, 8:10 am','Choking','Helped at 300 m','Recovered'],['24 Sep','Cardiac arrest','CPR for 6 min','Ambulance took over'],['11 Sep','Heavy bleeding','Pressure applied','Stable'],['2 Sep','Burn','Cooled and covered','Stable']];
+
+var IC={
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>',
+ play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg>',
+ users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6M17 5a3.5 3.5 0 010 7M22 20c0-3-2-5-4-5.5"/></svg>',
+ doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>',
+ map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z M9 4v14 M15 6v14"/></svg>',
+ phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>',
+ hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+ bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4zM10 21h4"/></svg>'
+};
+
+function toast(m){S.toast=m;render();clearTimeout(timers.toast);timers.toast=setTimeout(function(){S.toast='';render()},2200)}
+function stopAll(){['trk','cpr','vid','callt'].forEach(function(k){clearInterval(timers[k])});S.cprOn=false;if(window.speechSynthesis)speechSynthesis.cancel()}
+function say(t){try{if(window.speechSynthesis){speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=1;speechSynthesis.speak(u)}}catch(e){}}
+var AC=null;
+function beep(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.06)}catch(e){}}
+
+/* ---------- map ---------- */
+function pos(p,pts){var L=[],T=0,i;for(i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);L.push(d);T+=d}var t=Math.max(0,Math.min(1,p))*T;for(i=0;i<L.length;i++){if(t<=L[i]){var k=t/L[i];return[pts[i][0]+(pts[i+1][0]-pts[i][0])*k,pts[i][1]+(pts[i+1][1]-pts[i][1])*k]}t-=L[i]}return pts[pts.length-1]}
+var VP=[[40,40],[40,120],[210,120]], AP=[[280,205],[210,205],[210,120]];
+function mapSVG(showAmb,volMode){
+  var vp=pos(1-S.dist/800,VP), ap=pos(1-S.amb/9,AP);
+  var s='<div class="map"><svg viewBox="0 0 300 220" role="img" aria-label="Map showing the victim location, volunteer and ambulance">';
+  s+='<path class="road" d="M0 40H300M0 120H300M0 205H300M40 0V220M130 0V220M210 0V220"/>';
+  s+='<polyline class="route" points="'+VP.map(function(p){return p.join(',')}).join(' ')+'"/>';
+  s+='<circle class="pulse" cx="210" cy="120" r="14" fill="#D7261E"/><circle cx="210" cy="120" r="7" fill="#D7261E" stroke="#fff" stroke-width="2.5"/>';
+  s+='<g><circle cx="'+vp[0]+'" cy="'+vp[1]+'" r="9" fill="#17805A" stroke="#fff" stroke-width="2.5"/><text x="'+vp[0]+'" y="'+(vp[1]+4)+'" font-size="11" text-anchor="middle" fill="#fff" font-weight="700">V</text></g>';
+  if(showAmb){s+='<g><rect x="'+(ap[0]-10)+'" y="'+(ap[1]-8)+'" width="20" height="16" rx="4" fill="#1F5FA8" stroke="#fff" stroke-width="2"/><text x="'+ap[0]+'" y="'+(ap[1]+4)+'" font-size="11" text-anchor="middle" fill="#fff" font-weight="700">+</text></g>'}
+  s+='</svg></div>';return s;
+}
+
+/* ---------- views ---------- */
+function vAuth(){
+  var v=S.authRole==='vol';
+  var h='<div class="logo"><i><svg viewBox="0 0 24 24"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg></i>Lifeline</div>';
+  h+='<p class="sub">Nearby trained help, before the ambulance arrives.</p>';
+  h+='<div class="seg" role="tablist"><button data-a="mode" data-v="signup" class="'+(S.mode==='signup'?'on':'')+'">Sign up</button><button data-a="mode" data-v="login" class="'+(S.mode==='login'?'on':'')+'">Log in</button></div>';
+  h+='<div class="seg"><button data-a="arole" data-v="user" class="'+(!v?'on':'')+'">I need help</button><button data-a="arole" data-v="vol" class="'+(v?'on':'')+'">I am a volunteer</button></div>';
+  h+='<label class="f" for="id">Email or phone number</label><input id="id" type="text" placeholder="name@email.com or +91 …">';
+  h+='<label class="f" for="pw">Password</label><input id="pw" type="password" placeholder="At least 8 characters">';
+  if(v&&S.mode==='signup'){
+    h+='<label class="f">Skills</label><div class="pills">'+['CPR','Trauma','Burns','Choking','Nursing','Paramedic'].map(function(k){return '<button data-a="skill" data-v="'+k+'" class="'+(S.skill.indexOf(k)>-1?'on':'')+'">'+k+'</button>'}).join('')+'</div>';
+    h+='<label class="f">Certificate</label><div class="file'+(S.cert?' done':'')+'" data-a="cert" tabindex="0" role="button">'+(S.cert?'✔ first-aid-certificate.pdf uploaded':'Tap to upload first-aid certificate')+'</div>';
+    h+='<label class="f" for="exp">Experience</label><select id="exp"><option>Less than 1 year</option><option>1 to 3 years</option><option>3 to 5 years</option><option>More than 5 years</option></select>';
+    h+='<div class="card" style="margin-top:12px;background:var(--amber-t);border-color:transparent"><b>Verification needed.</b> You will receive alerts after our team checks your certificate. This usually takes 1 to 2 days.</div>';
+  }
+  h+='<div style="height:14px"></div><button class="btn red" data-a="enter">'+(S.mode==='signup'?'Create account':'Log in')+'</button>';
+  h+='<p class="disc">First aid does not replace professional medical care. Always call 112 in an emergency.</p>';
+  return h;
+}
+
+function vUserHome(){
+  var h='<div class="row between"><div><div class="sub" style="margin:0">Your location</div><b>Rankala Road, Kolhapur</b></div><span class="chip g">GPS on</span></div>';
+  h+='<div class="sos-wrap"><button class="sos" data-a="sos" aria-label="Emergency SOS">SOS<small>Tap for help</small></button></div>';
+  h+='<p class="sub" style="text-align:center">Alerts 5 verified volunteers within 500 m to 1 km and shares your GPS.</p>';
+  h+='<div class="btns"><button class="btn ghost" data-a="tab" data-v="guides">'+IC.play+'30-sec guides</button><button class="btn ghost" data-a="tab" data-v="people">'+IC.users+'Volunteers</button></div>';
+  h+='<div class="card" style="margin-top:12px"><div class="row"><div class="grow"><b>Emergency numbers</b><div class="sub" style="margin:0">Work with no internet</div></div><a class="btn red sm" href="tel:112">Call 112</a><a class="btn ghost sm" href="tel:108">108</a></div></div>';
+  return h;
+}
+
+function vTypes(){
+  return '<div class="overlay"><div class="sheet"><h2 class="t">What is happening?</h2><p class="sub">Pick the closest match. You can change it later.</p><div class="types">'+TYPES.map(function(t){return '<button data-a="type" data-v="'+t[0]+'"><span>'+t[1]+'</span>'+t[0]+'</button>'}).join('')+'</div><div style="height:12px"></div><button class="btn ghost" data-a="close">Cancel</button></div></div>';
+}
+
+function vSending(){
+  return '<div class="overlay"><div class="sheet" style="text-align:center"><div class="big" style="color:var(--red);font-size:64px">'+S.count+'</div><h2 class="t">Sending SOS: '+S.sos+'</h2><p class="sub">GPS location, emergency type and your phone number go to nearby volunteers and to 112.</p><button class="btn ghost" data-a="cancelsos">Cancel, sent by mistake</button><button class="btn red" style="margin-top:8px" data-a="now">Send now</button></div></div>';
+}
+
+function vActive(){
+  var arr=S.dist<=0, eta=Math.max(1,Math.ceil(S.dist/80));
+  var h='<div class="row between"><h2 class="t" style="margin:0">'+S.sos+'</h2><span class="chip r">SOS active</span></div><div style="height:10px"></div>';
+  h+=mapSVG(true);
+  h+='<div class="card"><div class="row"><div class="avatar" style="width:48px;height:48px;font-size:18px;background:var(--green);color:#fff">AP</div><div class="grow"><b>Asha Patil</b> · CPR certified<div class="sub" style="margin:0">'+(arr?'Has arrived at your location':S.dist+' m away, about '+eta+' min')+'</div></div></div>';
+  h+='<div class="btns" style="margin-top:10px"><button class="btn green sm" data-a="call" data-v="voice">Voice call</button><button class="btn ghost sm" data-a="call" data-v="video">Video call</button></div></div>';
+  h+='<div class="card"><b>Who is coming</b><ul class="tl">';
+  h+='<li class="done"><span class="dot">✓</span><div>SOS sent with GPS</div></li>';
+  h+='<li class="done"><span class="dot">✓</span><div>Ambulance 108 notified</div></li>';
+  h+='<li class="'+(arr?'done':'now')+'"><span class="dot">'+(arr?'✓':'')+'</span><div>Volunteer '+(arr?'arrived':'on the way')+'</div></li>';
+  h+='<li class="'+(S.amb<=0?'done':'wait')+'"><span class="dot">'+(S.amb<=0?'✓':'')+'</span><div>Ambulance '+(S.amb<=0?'arrived':'arriving in about '+S.amb+' min')+'</div></li></ul></div>';
+  h+='<button class="btn red" data-a="cpr">Open voice-guided CPR</button><div style="height:8px"></div>';
+  h+='<div class="btns"><button class="btn ghost" data-a="vidopen" data-v="0">Watch 30-sec guide</button><button class="btn ghost" data-a="end">End SOS</button></div>';
+  return h;
+}
+
+function vGuides(){
+  var h='<h2 class="t">Quick guides</h2><p class="sub">30-second videos. Saved on your phone, so they work offline.</p>';
+  VIDEOS.forEach(function(v,i){h+='<button class="card vid" data-a="vidopen" data-v="'+i+'"><div class="thumb">▶</div><div class="grow"><b>'+v[0]+'</b><div class="sub" style="margin:0;font-size:13.5px">0:30 · <span style="color:var(--green)">Saved offline</span></div></div></button>'});
+  h+='<button class="btn red" data-a="cpr">Voice-guided CPR metronome</button>';return h;
+}
+
+function vVideo(){
+  var v=VIDEOS[S.vid], n=v[2].length, idx=Math.min(n-1,Math.floor(S.play/(30/n)));
+  var h='<button class="back" data-a="vidclose">‹ All guides</button><h2 class="t">'+v[0]+'</h2><p class="sub">'+v[1]+'</p>';
+  h+='<div class="player"><div class="row between" style="font-size:13px;opacity:.8"><span>Step '+(idx+1)+' of '+n+'</span><span>0:'+('0'+Math.floor(S.play)).slice(-2)+' / 0:30</span></div><div class="cap">'+v[2][idx]+'</div><div><div class="bar"><b style="width:'+(S.play/30*100)+'%"></b></div></div></div>';
+  h+='<div class="btns"><button class="btn" data-a="vidplay">'+(timers.vid&&S.playing?'Pause':(S.play>=30?'Replay':'Play'))+'</button><button class="btn ghost" data-a="speak">Read aloud</button></div>';
+  h+='<div class="card" style="margin-top:12px"><b>All steps</b><ol style="padding-left:20px;margin-top:6px;color:var(--mute)">'+v[2].map(function(s){return '<li>'+s+'</li>'}).join('')+'</ol></div>';return h;
+}
+
+function vCPR(){
+  var h='<button class="back" data-a="cprclose">‹ Back</button><h2 class="t">CPR guide</h2><p class="sub">110 pushes a minute. Works offline. Turn sound up.</p>';
+  h+='<div class="metro'+(S.beat?' beat':'')+'"><div>'+S.cprCount+'<small>of 30 pushes</small></div></div>';
+  h+='<button class="btn '+(S.cprOn?'ghost':'red')+'" data-a="cprtoggle">'+(S.cprOn?'Stop':'Start metronome and voice')+'</button>';
+  h+='<div class="card" style="margin-top:12px"><b>Before you start</b><ol style="padding-left:20px;margin-top:6px"><li>Person not responding and not breathing normally?</li><li>Call 112 or ask someone else to.</li><li>Hands on the centre of the chest, arms straight.</li><li>Push at least 5 cm deep, let the chest come back up.</li><li>After 30 pushes, give 2 breaths if trained. If not, keep pushing.</li></ol></div>';
+  h+='<p class="disc">Do not stop until help arrives, an AED is ready, or the person moves.</p>';return h;
+}
+
+function vPeople(){
+  var h='<h2 class="t">Volunteers near you</h2><p class="sub">Saved list of verified volunteers. Works without internet. Last updated 10 min ago.</p>';
+  VOLS.forEach(function(v){h+='<div class="card row"><div class="grow"><b>'+v[0]+'</b><div class="sub" style="margin:0">'+v[1]+' · '+v[3]+'</div></div><a class="btn green sm" href="tel:'+v[2].replace(/\s/g,'')+'">Call</a></div>'});
+  return h;
+}
+
+function vDocs(){
+  var h='<h2 class="t">Talk to a doctor</h2><p class="sub">Registered MBBS doctors for advice. They cannot replace an ambulance. Call 112 for emergencies.</p>';
+  DOCS.forEach(function(d){var on=d[3]!=='Busy';h+='<div class="card"><div class="row"><div class="grow"><b>'+d[0]+'</b> <span class="chip g">Verified</span><div class="sub" style="margin:2px 0 0">'+d[1]+' · Reg. '+d[2]+'</div></div></div><div class="row between" style="margin-top:8px"><span class="chip '+(on?'g':'a')+'">'+d[3]+'</span><div class="btns"><button class="btn ghost sm" '+(on?'data-a="call" data-v="video" data-n="'+d[0]+'"':'disabled style="opacity:.5"')+'>Video</button><button class="btn green sm" '+(on?'data-a="call" data-v="voice" data-n="'+d[0]+'"':'disabled style="opacity:.5"')+'>Call</button></div></div></div>'});
+  return h;
+}
+
+function vVolHome(){
+  var h='<div class="row between"><div><h2 class="t" style="margin:0">Hello, Asha</h2><div class="sub" style="margin:0">CPR · Trauma · Verified</div></div><span class="chip g">Verified</span></div><div style="height:12px"></div>';
+  h+='<div class="card row"><div class="grow"><b>Available for alerts</b><div class="sub" style="margin:0">'+(S.online?'You will be alerted within 1 km':'You are hidden from alerts')+'</div></div><button class="sw'+(S.online?' on':'')+'" data-a="online" role="switch" aria-checked="'+S.online+'" aria-label="Available for alerts"></button></div>';
+  if(S.alertOn&&!S.accepted){
+    h+='<div class="alertbar"><div class="row between"><b style="font-size:20px">Emergency: '+S.sos+'</b><span>'+S.dist+' m</span></div><p style="margin:6px 0 12px">About '+Math.ceil(S.dist/80)+' min walk. Exact location is shown after you accept.</p><div class="btns"><button class="btn" data-a="accept">Accept</button><button class="btn dk" data-a="decline">Decline</button></div></div>';
+  } else if(S.accepted){
+    h+='<div class="chip r" style="margin-bottom:8px">Responding: '+S.sos+'</div>'+mapSVG(true)+'<div class="card"><b>'+(S.dist<=0?'You have arrived':S.dist+' m to the person')+'</b><div class="sub" style="margin:0">Ambulance arriving in about '+Math.max(0,S.amb)+' min. Caller: Rahul (voice call open).</div><div class="btns" style="margin-top:10px"><button class="btn green sm" data-a="call" data-v="voice" data-n="Rahul (caller)">Voice call</button><button class="btn ghost sm" data-a="call" data-v="video" data-n="Rahul (caller)">Video call</button></div></div><div class="btns"><button class="btn ghost" data-a="cpr">CPR guide</button><button class="btn" data-a="finish">Mark as helped</button></div>';
+  } else {
+    h+='<div class="card" style="text-align:center;padding:26px 14px"><div style="font-size:34px">📡</div><b>No alerts right now</b><div class="sub" style="margin:0">Keep the app open. Alerts arrive as a loud notification.</div></div><button class="btn red" data-a="simalert">Simulate an incoming alert</button>';
+  }
+  return h;
+}
+
+function vVolMap(){
+  return '<h2 class="t">Map</h2><p class="sub">You and open emergencies near you.</p>'+mapSVG(false)+'<div class="card"><b>0 open emergencies</b><div class="sub" style="margin:0">Coverage: 1 km around Rankala Road</div></div>';
+}
+function vHist(){
+  var h='<h2 class="t">People helped</h2><div class="card row"><div class="big" style="color:var(--green)">'+(4+S.extra)+'</div><div class="grow"><b>lives assisted</b><div class="sub" style="margin:0">Avg response 4 min</div></div></div>';
+  if(S.extra){h+='<div class="card"><div class="row between"><b>Just now · '+S.sos+'</b><span class="chip g">Helped</span></div><div class="sub" style="margin:0">Stayed until ambulance took over</div></div>'}
+  HIST.forEach(function(x){h+='<div class="card"><div class="row between"><b>'+x[1]+'</b><span class="chip g">'+x[3]+'</span></div><div class="sub" style="margin:0">'+x[0]+' · '+x[2]+'</div></div>'});
+  return h;
+}
+S.extra=0;
+
+function vCall(){
+  var c=S.call,m=Math.floor(S.callT/60),s=('0'+(S.callT%60)).slice(-2);
+  return '<div class="call"><div class="avatar">'+c.n.charAt(0)+'</div><b style="font-size:22px">'+c.n+'</b><div style="opacity:.7;margin-top:4px">'+(S.callT<2?'Connecting…':m+':'+s)+'</div>'+(c.v==='video'?'<div class="tile">Live video preview</div>':'<div style="flex:1"></div>')+'<div class="ctl"><button aria-label="Mute">🎤</button><button aria-label="Speaker">🔊</button>'+(c.v==='video'?'<button aria-label="Camera">📷</button>':'')+'<button class="end" data-a="endcall" aria-label="End call">✕</button></div></div>';
+}
+
+/* ---------- navigation ---------- */
+function navFor(){
+  if(S.screen==='auth')return '';
+  var items=S.role==='vol'?[['home','Alerts',IC.bell],['map','Map',IC.map],['hist','History',IC.hist]]:[['home','Home',IC.home],['guides','Guides',IC.play],['people','Volunteers',IC.users],['docs','Doctors',IC.doc]];
+  return items.map(function(i){return '<button data-a="tab" data-v="'+i[0]+'" class="'+(S.tab===i[0]?'on':'')+'">'+i[2]+i[1]+'</button>'}).join('');
+}
+
+function render(){
+  var v='';
+  if(S.screen==='auth')v=vAuth();
+  else if(S.role==='vol'){v=S.tab==='home'?vVolHome():S.tab==='map'?vVolMap():vHist()}
+  else{
+    if(S.cprView)v=vCPR();
+    else if(S.vid!==null&&S.tab==='guides')v=vVideo();
+    else if(S.phase==='active'&&S.tab==='home')v=vActive();
+    else v=S.tab==='home'?vUserHome():S.tab==='guides'?vGuides():S.tab==='people'?vPeople():vDocs();
+  }
+  if(S.role==='vol'&&S.cprView)v=vCPR();
+  if(S.sheet==='types')v+=vTypes();
+  if(S.sheet==='sending')v+=vSending();
+  if(S.call)v+=vCall();
+  if(S.toast)v+='<div class="toast" role="status">'+S.toast+'</div>';
+  var body=$('#view'),top=body.scrollTop;
+  body.innerHTML=v;body.scrollTop=(S.keepScroll?top:0);S.keepScroll=false;
+  $('#nav').innerHTML=navFor();
+}
+
+/* ---------- simulation ---------- */
+function startTracking(){
+  clearInterval(timers.trk);var tick=0;
+  timers.trk=setInterval(function(){
+    tick++;if(S.dist>0)S.dist=Math.max(0,S.dist-50);
+    if(tick%6===0&&S.amb>0)S.amb--;
+    S.keepScroll=true;
+    if(!S.cprView&&S.call===null){render()}
+    if(S.dist===0&&!S.arrivedNotified){S.arrivedNotified=true;S.toast='Volunteer has arrived';render();setTimeout(function(){S.toast='';render()},2200)}
+  },1000);
+}
+function launchSOS(type){S.sos=type;S.sheet='sending';S.count=5;render();clearInterval(timers.cd);
+  timers.cd=setInterval(function(){S.count--;if(S.count<=0){clearInterval(timers.cd);dispatch()}else render()},1000)}
+function dispatch(){clearInterval(timers.cd);S.sheet=null;S.phase='active';S.dist=800;S.amb=9;S.arrivedNotified=false;S.tab='home';render();startTracking()}
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-a]');if(!el)return;
+  var a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'mode':S.mode=v;break;
+    case 'arole':S.authRole=v;break;
+    case 'skill':var i=S.skill.indexOf(v);if(i>-1)S.skill.splice(i,1);else S.skill.push(v);break;
+    case 'cert':S.cert=!S.cert;break;
+    case 'enter':stopAll();S.role=S.authRole;S.screen='app';S.tab='home';S.phase=null;S.sos=null;S.accepted=false;S.alertOn=false;S.cprView=false;S.vid=null;
+      if(S.role==='vol'){S.toast='Demo: certificate treated as verified'}break;
+    case 'tab':S.tab=v;S.vid=null;S.cprView=false;break;
+    case 'sos':S.sheet='types';break;
+    case 'close':S.sheet=null;break;
+    case 'type':S.sheet=null;launchSOS(v);return;
+    case 'cancelsos':clearInterval(timers.cd);S.sheet=null;S.sos=null;S.toast='SOS cancelled. Nobody was alerted.';break;
+    case 'now':dispatch();return;
+    case 'end':stopAll();S.phase=null;S.sos=null;S.toast='SOS ended. Stay safe.';break;
+    case 'vidopen':stopAll();S.tab='guides';S.vid=+v;S.play=0;S.playing=false;break;
+    case 'vidclose':stopAll();S.vid=null;break;
+    case 'vidplay':
+      if(S.playing){clearInterval(timers.vid);S.playing=false;timers.vid=null}
+      else{if(S.play>=30)S.play=0;S.playing=true;timers.vid=setInterval(function(){S.play+=1;if(S.play>=30){S.play=30;S.playing=false;clearInterval(timers.vid);timers.vid=null}S.keepScroll=true;render()},1000)}
+      break;
+    case 'speak':say(VIDEOS[S.vid][1]+' '+VIDEOS[S.vid][2].join('. '));return;
+    case 'cpr':S.cprView=true;S.cprCount=0;S.beat=false;break;
+    case 'cprclose':stopAll();S.cprView=false;S.cprCount=0;if(S.role==='user'&&S.phase==='active')startTracking();break;
+    case 'cprtoggle':
+      if(S.cprOn){clearInterval(timers.cpr);S.cprOn=false;if(window.speechSynthesis)speechSynthesis.cancel();S.beat=false;break}
+      S.cprOn=true;S.cprCount=0;say('Start now. Push hard and fast in the centre of the chest.');
+      timers.cpr=setInterval(function(){
+        S.cprCount++;S.beat=true;beep();
+        if(S.cprCount===15)say('Keep going. Push harder.');
+        if(S.cprCount>30){S.cprCount=1;}
+        if(S.cprCount===30){say('Give two rescue breaths, or keep pushing if not trained.')}
+        S.keepScroll=true;render();
+        setTimeout(function(){S.beat=false;S.keepScroll=true;render()},120);
+      },545);break;
+    case 'call':S.call={n:el.dataset.n||(S.role==='vol'?'Rahul (caller)':'Asha Patil'),v:v};S.callT=0;clearInterval(timers.callt);timers.callt=setInterval(function(){S.callT++;var c=$('.call div[style*="opacity"]');if(c){var m=Math.floor(S.callT/60),s=('0'+(S.callT%60)).slice(-2);c.textContent=S.callT<2?'Connecting…':m+':'+s}},1000);break;
+    case 'endcall':clearInterval(timers.callt);S.call=null;break;
+    case 'online':S.online=!S.online;break;
+    case 'simalert':if(!S.online){S.toast='Turn on availability first';break}S.sos=S.sos||'Cardiac arrest';S.alertOn=true;S.dist=600;S.amb=9;S.toast='New emergency 600 m away';break;
+    case 'accept':S.accepted=true;S.arrivedNotified=false;startTracking();break;
+    case 'decline':S.alertOn=false;S.toast='Declined. Next volunteer will be alerted.';break;
+    case 'finish':stopAll();S.accepted=false;S.alertOn=false;S.extra=1;S.tab='hist';S.toast='Thank you. Added to your history.';break;
+  }
+  render();
+});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.a==='cert'){e.preventDefault();e.target.click()}});
+
+/* side jump list */
+var JUMPS=[['Sign up (user)',function(){stopAll();S.role=null;S.screen='auth';S.mode='signup';S.authRole='user'}],['Sign up (volunteer)',function(){stopAll();S.role=null;S.screen='auth';S.mode='signup';S.authRole='vol'}],['User home',function(){stopAll();S.role='user';S.screen='app';S.tab='home';S.phase=null;S.cprView=false;S.vid=null}],['Active SOS',function(){stopAll();S.role='user';S.screen='app';S.tab='home';S.cprView=false;S.vid=null;S.sos='Cardiac arrest';dispatch()}],['CPR guide',function(){stopAll();S.role='user';S.screen='app';S.tab='home';S.phase=null;S.vid=null;S.cprView=true;S.cprCount=0}],['Volunteer alert',function(){stopAll();S.role='vol';S.screen='app';S.tab='home';S.cprView=false;S.accepted=false;S.sos='Cardiac arrest';S.alertOn=true;S.dist=600}]];
+$('#jump').innerHTML=JUMPS.map(function(j,i){return '<button data-j="'+i+'">'+j[0]+'</button>'}).join('');
+$('#jump').addEventListener('click',function(e){var b=e.target.closest('[data-j]');if(!b)return;JUMPS[+b.dataset.j][1]();render()});
+
+function clock(){var d=new Date();$('#clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+clock();setInterval(clock,30000);
+render();
+</script>
+</body>
+</html>
